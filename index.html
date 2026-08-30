@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Royal Real Estate</title>
-    <!-- استيراد خط عربي مميز من جوجل -->
+    <title>Royal Real Estate - WhatsApp Sender</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- مكتبة قراءة ملفات الاكسيل -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -14,69 +15,204 @@
             font-family: 'Cairo', sans-serif;
         }
         body {
-            background: linear-gradient(135deg, #0f172a, #1e293b);
+            background-color: #0f172a;
             color: #ffffff;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            overflow: hidden;
+            padding: 30px;
         }
         .container {
-            max-width: 700px;
-            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
-        h1 {
-            font-size: 3.5rem;
-            margin-bottom: 20px;
+        h2 {
             color: #f59e0b;
-            font-weight: 700;
-            letter-spacing: 1px;
+            margin-bottom: 20px;
+            text-align: center;
         }
-        p {
-            font-size: 1.2rem;
-            color: #94a3b8;
-            margin-bottom: 30px;
-            line-height: 1.6;
+        .upload-box {
+            border: 2px dashed #475569;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .upload-box:hover {
+            border-color: #f59e0b;
+        }
+        input[type="file"] {
+            margin-top: 10px;
+            color: #cbd5e1;
+        }
+        .message-box {
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: #fff;
+            resize: none;
+            font-size: 1rem;
         }
         .btn {
-            display: inline-block;
             background-color: #f59e0b;
             color: #0f172a;
-            padding: 12px 30px;
+            padding: 12px 25px;
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
+            border: none;
             border-radius: 8px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            cursor: pointer;
+            transition: 0.3s;
+            display: block;
+            width: 100%;
+            text-align: center;
         }
         .btn:hover {
             background-color: #d97706;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
         }
-        .footer {
-            position: absolute;
-            bottom: 20px;
-            font-size: 0.9rem;
-            color: #64748b;
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #334155;
+        }
+        th {
+            background-color: #0f172a;
+            color: #f59e0b;
+        }
+        .table-container {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Royal Real Estate</h1>
-        <p>مرحباً بك في منصتك العقارية المستقبلية. نحن نعمل على تجهيز واجهات وبرمجيات قوية لتجربة استثنائية.</p>
-        <a href="#explore" class="btn">قريباً... ابدأ التصفح</a>
+        <h2>Royal Real Estate - مرسل رسائل واتساب</h2>
+
+        <!-- رفع الشيت -->
+        <div class="upload-box">
+            <label for="excelFile">اختر شيت الأكسيل (يجب أن يحتوي على عمود للأرقام):</label><br>
+            <input type5="file" id="excelFile" accept=".xlsx, .xls" onchange="handleExcel(event)">
+        </div>
+
+        <!-- رسالة الواتساب -->
+        <div class="message-box">
+            <label for="wamessage">اكتب رسالة الواتساب:</label>
+            <textarea id="wamessage" placeholder="اكتب النص هنا..."></textarea>
+        </div>
+
+        <!-- زر الإرسال -->
+        <button class="btn" onclick="sendWhatsApp()">إرسال إلى الأرقام المحددة (WhatsApp Web)</button>
+
+        <!-- جدول عرض الأرقام -->
+        <div class="table-container">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"> تحديد الكل</th>
+                        <th>الرقم / البيان</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="2" style="text-align: center; color: #64748b;">قم برفع شيت الأكسيل لعرض الأرقام هنا</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <div class="footer">
-        &copy; 2026 Royal Real Estate. All rights reserved.
-    </div>
+    <script>
+        let excelData = [];
 
+        function handleExcel(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                // تحويل الشيت لـ JSON
+                excelData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                
+                displayTable(excelData);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function displayTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            // تخطي أول صف لو كان عناوین، أو عرضه حسب رغبتك
+            data.forEach((row, index) => {
+                if(row.length > 0 && row[0]) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><input type="checkbox" class="row-checkbox" value="${row[0]}"></td>
+                        <td>${row.join(' - ')}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+        }
+
+        function toggleSelectAll(source) {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+        }
+
+        function sendWhatsApp() {
+            const message = document.getElementById('wamessage').value;
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+
+            if(checkboxes.length === 0) {
+                alert('من فضلك اختر رقم واحد على الأقل من الجدول!');
+                return;
+            }
+
+            if(!message.trim()) {
+                alert('من فضلك اكتب الرسالة أولاً!');
+                return;
+            }
+
+            // فتح واتساب لكل رقم تم تحديده
+            checkboxes.forEach((cb, index) => {
+                let phone = cb.value.toString().trim();
+                // تنظيف الرقم وإضافة كود الدولة لو مش موجود (مثال مصر 20 افتراضي لو حابب، أو حسب الشيت)
+                if (!phone.startsWith('+')) {
+                    // لو الرقم يبدأ بـ 0 مثلاً نشيله ونحط كود مصر 20 (تعدل حسب دولتك)
+                    if (phone.startsWith('0')) {
+                        phone = '20' + phone.substring(1);
+                    }
+                }
+                
+                const encodedMessage = encodeURIComponent(message);
+                const whatsappUrl = `https://web.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`;
+
+                // فتح تابات واتساب ويب بفارق زمني بسيط عشان المتصفح ميعملش Block للـ Pop-ups
+                setTimeout(() => {
+                    window.open(whatsappUrl, '_blank');
+                }, index * 1500);
+            });
+        }
+    </script>
 </body>
 </html>
