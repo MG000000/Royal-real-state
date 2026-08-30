@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Royal Real Estate - WhatsApp Sender</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- مكتبة قراءة ملفات الاكسيل -->
+    <!-- مكتبة قراءة ملفات الاكسيل SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
@@ -20,7 +20,7 @@
             padding: 30px;
         }
         .container {
-            max-width: 800px;
+            max-width: 850px;
             margin: 0 auto;
             background: #1e293b;
             padding: 30px;
@@ -29,7 +29,7 @@
         }
         h2 {
             color: #f59e0b;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             text-align: center;
         }
         .upload-box {
@@ -38,22 +38,41 @@
             text-align: center;
             border-radius: 8px;
             margin-bottom: 20px;
-            cursor: pointer;
+            background: #0f172a;
             transition: 0.3s;
         }
         .upload-box:hover {
             border-color: #f59e0b;
         }
-        input[type="file"] {
-            margin-top: 10px;
+        .upload-box label {
+            display: block;
+            margin-bottom: 10px;
             color: #cbd5e1;
+            font-weight: 600;
+        }
+        /* تصميم زر اختيار الملفات ليصبح احترافياً */
+        input[type="file"] {
+            color: #f59e0b;
+            padding: 8px;
+            background: #1e293b;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            cursor: pointer;
+            width: 100%;
+            max-width: 400px;
         }
         .message-box {
             margin-bottom: 20px;
         }
+        .message-box label {
+            display: block;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+            font-weight: 600;
+        }
         textarea {
             width: 100%;
-            height: 100px;
+            height: 110px;
             padding: 12px;
             border-radius: 8px;
             border: 1px solid #475569;
@@ -62,11 +81,15 @@
             resize: none;
             font-size: 1rem;
         }
+        textarea:focus {
+            border-color: #f59e0b;
+            outline: none;
+        }
         .btn {
             background-color: #f59e0b;
             color: #0f172a;
-            padding: 12px 25px;
-            font-size: 1rem;
+            padding: 14px 25px;
+            font-size: 1.05rem;
             font-weight: 700;
             border: none;
             border-radius: 8px;
@@ -75,28 +98,42 @@
             display: block;
             width: 100%;
             text-align: center;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
         }
         .btn:hover {
             background-color: #d97706;
+            transform: translateY(-1px);
+        }
+        .table-container {
+            max-height: 320px;
+            overflow-y: auto;
+            margin-top: 25px;
+            border-radius: 8px;
+            border: 1px solid #334155;
         }
         table {
             width: 100%;
-            margin-top: 20px;
             border-collapse: collapse;
         }
         th, td {
-            padding: 12px;
+            padding: 12px 15px;
             text-align: right;
             border-bottom: 1px solid #334155;
         }
         th {
             background-color: #0f172a;
             color: #f59e0b;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
-        .table-container {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 20px;
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+        .file-info {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: #10b981;
         }
     </style>
 </head>
@@ -107,8 +144,9 @@
 
         <!-- رفع الشيت -->
         <div class="upload-box">
-            <label for="excelFile">اختر شيت الأكسيل (يجب أن يحتوي على عمود للأرقام):</label><br>
-            <input type5="file" id="excelFile" accept=".xlsx, .xls" onchange="handleExcel(event)">
+            <label for="excelFile">اختر شيت الأكسيل (يجب أن يحتوي على عمود للأرقام):</label>
+            <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="handleExcel(event)">
+            <div id="fileInfo" class="file-info"></div>
         </div>
 
         <!-- رسالة الواتساب -->
@@ -125,8 +163,8 @@
             <table id="dataTable">
                 <thead>
                     <tr>
-                        <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"> تحديد الكل</th>
-                        <th>الرقم / البيان</th>
+                        <th style="width: 60px;"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
+                        <th>البيانات المستخرجة من الشيت (الرقم / التفاصيل)</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -141,6 +179,9 @@
 
         function handleExcel(event) {
             const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('fileInfo').innerText = `تم اختيار الملف: ${file.name}`;
             const reader = new FileReader();
 
             reader.onload = function(e) {
@@ -151,7 +192,6 @@
                 
                 // تحويل الشيت لـ JSON
                 excelData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-                
                 displayTable(excelData);
             };
             reader.readAsArrayBuffer(file);
@@ -161,17 +201,27 @@
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
-            // تخطي أول صف لو كان عناوین، أو عرضه حسب رغبتك
+            let rowsCount = 0;
             data.forEach((row, index) => {
-                if(row.length > 0 && row[0]) {
+                // فلترة الصفوف الفارغة والتأكد من وجود بيانات
+                if(row && row.length > 0 && row.some(cell => cell !== undefined && cell !== '')) {
+                    const rowText = row.join(' - ');
+                    // محاولة استخراج أول قيمة تبدو كأنه رقم هاتف
+                    const phoneCandidate = row.find(cell => cell && cell.toString().replace(/\D/g, '').length >= 7) || row[0];
+                    
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><input type="checkbox" class="row-checkbox" value="${row[0]}"></td>
-                        <td>${row.join(' - ')}</td>
+                        <td><input type="checkbox" class="row-checkbox" value="${phoneCandidate}"></td>
+                        <td>${rowText}</td>
                     `;
                     tbody.appendChild(tr);
+                    rowsCount++;
                 }
             });
+
+            if(rowsCount === 0) {
+                tbody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: #ef4444;">الملف المختار فارغ أو لا يحتوي على بيانات صحيحة!</td></tr>`;
+            }
         }
 
         function toggleSelectAll(source) {
@@ -195,22 +245,22 @@
 
             // فتح واتساب لكل رقم تم تحديده
             checkboxes.forEach((cb, index) => {
-                let phone = cb.value.toString().trim();
-                // تنظيف الرقم وإضافة كود الدولة لو مش موجود (مثال مصر 20 افتراضي لو حابب، أو حسب الشيت)
-                if (!phone.startsWith('+')) {
-                    // لو الرقم يبدأ بـ 0 مثلاً نشيله ونحط كود مصر 20 (تعدل حسب دولتك)
-                    if (phone.startsWith('0')) {
-                        phone = '20' + phone.substring(1);
-                    }
+                let phone = cb.value.toString().replace(/\D/g, ''); // الاحتفاظ بالأرقام فقط
+                
+                if (!phone) return;
+
+                // إضافة كود الدولة (مصر 20 افتراضياً لو الرقم يبدأ بـ 0)
+                if (phone.startsWith('0')) {
+                    phone = '20' + phone.substring(1);
                 }
                 
                 const encodedMessage = encodeURIComponent(message);
                 const whatsappUrl = `https://web.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`;
 
-                // فتح تابات واتساب ويب بفارق زمني بسيط عشان المتصفح ميعملش Block للـ Pop-ups
+                // فتح تابات واتساب ويب بفارق زمني لتجنب حظر المتصفح للـ Pop-ups
                 setTimeout(() => {
                     window.open(whatsappUrl, '_blank');
-                }, index * 1500);
+                }, index * 1200);
             });
         }
     </script>
