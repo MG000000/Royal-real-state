@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Royal Real Estate - WhatsApp Sender</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- مكتبة قراءة ملفات الاكسيل SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
@@ -39,18 +38,7 @@
             border-radius: 8px;
             margin-bottom: 20px;
             background: #0f172a;
-            transition: 0.3s;
         }
-        .upload-box:hover {
-            border-color: #f59e0b;
-        }
-        .upload-box label {
-            display: block;
-            margin-bottom: 10px;
-            color: #cbd5e1;
-            font-weight: 600;
-        }
-        /* تصميم زر اختيار الملفات ليصبح احترافياً */
         input[type="file"] {
             color: #f59e0b;
             padding: 8px;
@@ -60,6 +48,7 @@
             cursor: pointer;
             width: 100%;
             max-width: 400px;
+            margin-top: 10px;
         }
         .message-box {
             margin-bottom: 20px;
@@ -72,7 +61,7 @@
         }
         textarea {
             width: 100%;
-            height: 110px;
+            height: 100px;
             padding: 12px;
             border-radius: 8px;
             border: 1px solid #475569;
@@ -81,33 +70,44 @@
             resize: none;
             font-size: 1rem;
         }
-        textarea:focus {
-            border-color: #f59e0b;
-            outline: none;
+        .btn-group {
+            display: flex;
+            gap: 15px;
         }
         .btn {
             background-color: #f59e0b;
             color: #0f172a;
-            padding: 14px 25px;
+            padding: 14px 20px;
             font-size: 1.05rem;
             font-weight: 700;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             transition: 0.3s;
-            display: block;
-            width: 100%;
+            flex: 1;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
         }
         .btn:hover {
             background-color: #d97706;
-            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background-color: #334155;
+            color: #fff;
+        }
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
+        .status-badge {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 1.1rem;
+            color: #38bdf8;
+            font-weight: 600;
         }
         .table-container {
-            max-height: 320px;
+            max-height: 280px;
             overflow-y: auto;
-            margin-top: 25px;
+            margin-top: 20px;
             border-radius: 8px;
             border: 1px solid #334155;
         }
@@ -125,10 +125,6 @@
             color: #f59e0b;
             position: sticky;
             top: 0;
-            z-index: 10;
-        }
-        tr:hover {
-            background-color: rgba(255, 255, 255, 0.02);
         }
         .file-info {
             margin-top: 8px;
@@ -140,31 +136,33 @@
 <body>
 
     <div class="container">
-        <h2>Royal Real Estate - مرسل رسائل واتساب</h2>
+        <h2>Royal Real Estate - نظام إرسال الواتساب المتسلسل</h2>
 
-        <!-- رفع الشيت -->
         <div class="upload-box">
-            <label for="excelFile">اختر شيت الأكسيل (يجب أن يحتوي على عمود للأرقام):</label>
+            <label style="color: #cbd5e1; font-weight: 600;">اختر شيت الأكسيل:</label><br>
             <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="handleExcel(event)">
             <div id="fileInfo" class="file-info"></div>
         </div>
 
-        <!-- رسالة الواتساب -->
         <div class="message-box">
             <label for="wamessage">اكتب رسالة الواتساب:</label>
             <textarea id="wamessage" placeholder="اكتب النص هنا..."></textarea>
         </div>
 
-        <!-- زر الإرسال -->
-        <button class="btn" onclick="sendWhatsApp()">إرسال إلى الأرقام المحددة (WhatsApp Web)</button>
+        <!-- أزرار التحكم -->
+        <div class="btn-group">
+            <button class="btn" onclick="startSequentialSending()">🚀 إرسال متسلسل (فتح الرقم التالي)</button>
+            <button class="btn btn-secondary" onclick="resetQueue()">إعادة ضبط</button>
+        </div>
 
-        <!-- جدول عرض الأرقام -->
+        <div id="statusBadge" class="status-badge">جاهز للبدء... اختر الأرقام واضغط إرسال</div>
+
         <div class="table-container">
-            <table id="dataTable">
+            <table>
                 <thead>
                     <tr>
-                        <th style="width: 60px;"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
-                        <th>البيانات المستخرجة من الشيت (الرقم / التفاصيل)</th>
+                        <th style="width: 50px;"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
+                        <th>البيانات المستخرجة (الرقم / التفاصيل)</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -176,6 +174,8 @@
 
     <script>
         let excelData = [];
+        let selectedQueue = [];
+        let currentIndex = 0;
 
         function handleExcel(event) {
             const file = event.target.files[0];
@@ -190,7 +190,6 @@
                 const firstSheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[firstSheetName];
                 
-                // تحويل الشيت لـ JSON
                 excelData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
                 displayTable(excelData);
             };
@@ -201,12 +200,9 @@
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
-            let rowsCount = 0;
-            data.forEach((row, index) => {
-                // فلترة الصفوف الفارغة والتأكد من وجود بيانات
+            data.forEach((row) => {
                 if(row && row.length > 0 && row.some(cell => cell !== undefined && cell !== '')) {
                     const rowText = row.join(' - ');
-                    // محاولة استخراج أول قيمة تبدو كأنه رقم هاتف
                     const phoneCandidate = row.find(cell => cell && cell.toString().replace(/\D/g, '').length >= 7) || row[0];
                     
                     const tr = document.createElement('tr');
@@ -215,13 +211,8 @@
                         <td>${rowText}</td>
                     `;
                     tbody.appendChild(tr);
-                    rowsCount++;
                 }
             });
-
-            if(rowsCount === 0) {
-                tbody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: #ef4444;">الملف المختار فارغ أو لا يحتوي على بيانات صحيحة!</td></tr>`;
-            }
         }
 
         function toggleSelectAll(source) {
@@ -229,7 +220,7 @@
             checkboxes.forEach(cb => cb.checked = source.checked);
         }
 
-        function sendWhatsApp() {
+        function startSequentialSending() {
             const message = document.getElementById('wamessage').value;
             const checkboxes = document.querySelectorAll('.row-checkbox:checked');
 
@@ -243,25 +234,45 @@
                 return;
             }
 
-            // فتح واتساب لكل رقم تم تحديده
-            checkboxes.forEach((cb, index) => {
-                let phone = cb.value.toString().replace(/\D/g, ''); // الاحتفاظ بالأرقام فقط
-                
-                if (!phone) return;
+            // تجهيز قائمة الأرقام المحددة
+            selectedQueue = Array.from(checkboxes).map(cb => cb.value);
+            currentIndex = 0;
 
-                // إضافة كود الدولة (مصر 20 افتراضياً لو الرقم يبدأ بـ 0)
-                if (phone.startsWith('0')) {
-                    phone = '20' + phone.substring(1);
-                }
-                
-                const encodedMessage = encodeURIComponent(message);
-                const whatsappUrl = `https://web.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`;
+            sendNextNumber(message);
+        }
 
-                // فتح تابات واتساب ويب بفارق زمني لتجنب حظر المتصفح للـ Pop-ups
-                setTimeout(() => {
-                    window.open(whatsappUrl, '_blank');
-                }, index * 1200);
-            });
+        function sendNextNumber(message) {
+            if (currentIndex >= selectedQueue.length) {
+                document.getElementById('statusBadge').innerText = "✅ تم الانتهاء من إرسال جميع الأرقام المحددة بنجاح!";
+                alert("تم الانتهاء من جميع الأرقام المحددة!");
+                return;
+            }
+
+            let phone = selectedQueue[currentIndex].toString().replace(/\D/g, '');
+            if (phone.startsWith('0')) {
+                phone = '20' + phone.substring(1);
+            }
+
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = `https://web.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`;
+
+            // فتح التاب للرقم الحالي فقط
+            window.open(whatsappUrl, '_blank');
+
+            document.getElementById('statusBadge').innerText = `📤 جاري معالجة الرقم (${currentIndex + 1} من ${selectedQueue.length}) - اضغط الزر للرقم التالى بعد الإرسال`;
+            
+            // تغيير نص الزر ليكون واضحاً للخطوة القادمة
+            const btn = document.querySelector('.btn');
+            btn.innerText = `➡️ افتح الرقم التالي (${currentIndex + 2}/${selectedQueue.length})`;
+
+            currentIndex++;
+        }
+
+        function resetQueue() {
+            selectedQueue = [];
+            currentIndex = 0;
+            document.getElementById('statusBadge').innerText = "تم إعادة الضبط. اختر الأرقام وابدأ من جديد.";
+            document.querySelector('.btn').innerText = "🚀 إرسال متسلسل (فتح الرقم التالي)";
         }
     </script>
 </body>
