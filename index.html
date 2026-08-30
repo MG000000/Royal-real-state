@@ -16,69 +16,61 @@
         body {
             background-color: #0f172a;
             color: #ffffff;
-            padding: 30px;
+            padding: 20px;
         }
         .container {
-            max-width: 850px;
+            max-width: 800px;
             margin: 0 auto;
             background: #1e293b;
-            padding: 30px;
+            padding: 25px;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
         h2 {
             color: #f59e0b;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             text-align: center;
         }
         .upload-box {
             border: 2px dashed #475569;
-            padding: 20px;
+            padding: 15px;
             text-align: center;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             background: #0f172a;
         }
         input[type="file"] {
             color: #f59e0b;
-            padding: 8px;
+            padding: 6px;
             background: #1e293b;
             border-radius: 6px;
             border: 1px solid #475569;
             cursor: pointer;
             width: 100%;
-            max-width: 400px;
-            margin-top: 10px;
-        }
-        .message-box {
-            margin-bottom: 20px;
-        }
-        .message-box label {
-            display: block;
-            margin-bottom: 8px;
-            color: #cbd5e1;
-            font-weight: 600;
+            max-width: 350px;
+            margin-top: 8px;
         }
         textarea {
             width: 100%;
-            height: 100px;
-            padding: 12px;
+            height: 90px;
+            padding: 10px;
             border-radius: 8px;
             border: 1px solid #475569;
             background: #0f172a;
             color: #fff;
             resize: none;
             font-size: 1rem;
+            margin-bottom: 15px;
         }
         .btn-group {
             display: flex;
-            gap: 15px;
+            gap: 10px;
         }
         .btn {
             background-color: #f59e0b;
             color: #0f172a;
-            padding: 14px 20px;
-            font-size: 1.05rem;
+            padding: 12px;
+            font-size: 1rem;
             font-weight: 700;
             border: none;
             border-radius: 8px;
@@ -86,28 +78,29 @@
             transition: 0.3s;
             flex: 1;
             text-align: center;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
         }
         .btn:hover {
             background-color: #d97706;
         }
-        .btn-secondary {
-            background-color: #334155;
+        .btn-stop {
+            background-color: #ef4444;
             color: #fff;
         }
-        .btn-secondary:hover {
-            background-color: #475569;
+        .btn-stop:hover {
+            background-color: #dc2626;
         }
-        .status-badge {
+        .status {
             text-align: center;
             margin: 15px 0;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             color: #38bdf8;
             font-weight: 600;
         }
         .table-container {
-            max-height: 280px;
+            max-height: 250px;
             overflow-y: auto;
-            margin-top: 20px;
+            margin-top: 15px;
             border-radius: 8px;
             border: 1px solid #334155;
         }
@@ -116,9 +109,10 @@
             border-collapse: collapse;
         }
         th, td {
-            padding: 12px 15px;
+            padding: 10px 12px;
             text-align: right;
             border-bottom: 1px solid #334155;
+            font-size: 0.95rem;
         }
         th {
             background-color: #0f172a;
@@ -126,47 +120,38 @@
             position: sticky;
             top: 0;
         }
-        .file-info {
-            margin-top: 8px;
-            font-size: 0.9rem;
-            color: #10b981;
-        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>Royal Real Estate - نظام إرسال الواتساب المتسلسل</h2>
+        <h2>Royal Real Estate - الإرسال التلقائي للواتساب</h2>
 
         <div class="upload-box">
             <label style="color: #cbd5e1; font-weight: 600;">اختر شيت الأكسيل:</label><br>
             <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="handleExcel(event)">
-            <div id="fileInfo" class="file-info"></div>
         </div>
 
-        <div class="message-box">
-            <label for="wamessage">اكتب رسالة الواتساب:</label>
-            <textarea id="wamessage" placeholder="اكتب النص هنا..."></textarea>
-        </div>
+        <label style="color: #cbd5e1; font-weight: 600;">اكتب رسالة الواتساب:</label>
+        <textarea id="wamessage" placeholder="اكتب النص هنا..."></textarea>
 
-        <!-- أزرار التحكم -->
         <div class="btn-group">
-            <button class="btn" onclick="startSequentialSending()">🚀 إرسال متسلسل (فتح الرقم التالي)</button>
-            <button class="btn btn-secondary" onclick="resetQueue()">إعادة ضبط</button>
+            <button class="btn" onclick="startAutoSend()">🚀 بدء الإرسال التلقائي (كل 5 ثواني)</button>
+            <button class="btn btn-stop" onclick="stopAutoSend()">⏹️ إيقاف</button>
         </div>
 
-        <div id="statusBadge" class="status-badge">جاهز للبدء... اختر الأرقام واضغط إرسال</div>
+        <div id="statusBadge" class="status-badge status">ارفع الشيت واكتب الرسالة للبدء</div>
 
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 50px;"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
-                        <th>البيانات المستخرجة (الرقم / التفاصيل)</th>
+                        <th style="width: 45px;"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
+                        <th>الأرقام والبيانات المستخرجة</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr><td colspan="2" style="text-align: center; color: #64748b;">قم برفع شيت الأكسيل لعرض الأرقام هنا</td></tr>
+                    <tr><td colspan="2" style="text-align: center; color: #64748b;">في انتظار رفع شيت الأكسيل...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -174,105 +159,97 @@
 
     <script>
         let excelData = [];
-        let selectedQueue = [];
-        let currentIndex = 0;
+        let timer = null;
 
         function handleExcel(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            document.getElementById('fileInfo').innerText = `تم اختيار الملف: ${file.name}`;
             const reader = new FileReader();
-
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, {type: 'array'});
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                excelData = XLSX.utils.sheet_to_json(sheet, {header: 1});
                 
-                excelData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-                displayTable(excelData);
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
+
+                excelData.forEach((row) => {
+                    if(row && row.length > 0 && row.some(cell => cell !== undefined && cell !== '')) {
+                        const rowText = row.join(' - ');
+                        const phone = row.find(cell => cell && cell.toString().replace(/\D/g, '').length >= 7) || row[0];
+                        
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><input type="checkbox" class="row-checkbox" value="${phone}"></td>
+                            <td>${rowText}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                });
+                document.getElementById('statusBadge').innerText = "تم تحميل الشيت بنجاح. حدد الأرقام وابدأ الإرسال.";
             };
             reader.readAsArrayBuffer(file);
         }
 
-        function displayTable(data) {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-
-            data.forEach((row) => {
-                if(row && row.length > 0 && row.some(cell => cell !== undefined && cell !== '')) {
-                    const rowText = row.join(' - ');
-                    const phoneCandidate = row.find(cell => cell && cell.toString().replace(/\D/g, '').length >= 7) || row[0];
-                    
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><input type="checkbox" class="row-checkbox" value="${phoneCandidate}"></td>
-                        <td>${rowText}</td>
-                    `;
-                    tbody.appendChild(tr);
-                }
-            });
-        }
-
         function toggleSelectAll(source) {
-            const checkboxes = document.querySelectorAll('.row-checkbox');
-            checkboxes.forEach(cb => cb.checked = source.checked);
+            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = source.checked);
         }
 
-        function startSequentialSending() {
+        function startAutoSend() {
             const message = document.getElementById('wamessage').value;
-            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            const checkboxes = Array.from(document.querySelectorAll('.row-checkbox:checked'));
 
             if(checkboxes.length === 0) {
-                alert('من فضلك اختر رقم واحد على الأقل من الجدول!');
+                alert('اختر رقم واحد على الأقل من الجدول!');
                 return;
             }
-
             if(!message.trim()) {
-                alert('من فضلك اكتب الرسالة أولاً!');
+                alert('اكتب الرسالة أولاً!');
                 return;
             }
 
-            // تجهيز قائمة الأرقام المحددة
-            selectedQueue = Array.from(checkboxes).map(cb => cb.value);
-            currentIndex = 0;
+            // لو فيه مؤتمر شغال قبل كده نوقفه
+            if (timer) clearInterval(timer);
 
-            sendNextNumber(message);
+            let index = 0;
+            document.getElementById('statusBadge').innerText = `🚀 جاري بدء الإرسال التلقائي لأول رقم...`;
+
+            // فتح أول رقم فوراً
+            openChat(checkboxes[index].value, message);
+            index++;
+
+            // فتح باقي الأرقام كل 5 ثواني
+            timer = setInterval(() => {
+                if (index >= checkboxes.length) {
+                    clearInterval(timer);
+                    document.getElementById('statusBadge').innerText = "✅ تم الانتهاء من إرسال جميع الأرقام المحددة بنجاح!";
+                    alert("تم الانتهاء من جميع الأرقام المحددة!");
+                    return;
+                }
+
+                openChat(checkboxes[index].value, message);
+                document.getElementById('statusBadge').innerText = `⏳ تم فتح الرقم (${index + 1} من ${checkboxes.length}) - التالي بعد 5 ثواني...`;
+                index++;
+            }, 5000); // 5000 ميللي ثانية = 5 ثواني
         }
 
-        function sendNextNumber(message) {
-            if (currentIndex >= selectedQueue.length) {
-                document.getElementById('statusBadge').innerText = "✅ تم الانتهاء من إرسال جميع الأرقام المحددة بنجاح!";
-                alert("تم الانتهاء من جميع الأرقام المحددة!");
-                return;
+        function stopAutoSend() {
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+                document.getElementById('statusBadge').innerText = "⏹️ تم إيقاف الإرسال التلقائي مؤقتاً.";
             }
+        }
 
-            let phone = selectedQueue[currentIndex].toString().replace(/\D/g, '');
+        function openChat(phoneRaw, message) {
+            let phone = phoneRaw.toString().replace(/\D/g, '');
             if (phone.startsWith('0')) {
                 phone = '20' + phone.substring(1);
             }
-
-            const encodedMessage = encodeURIComponent(message);
-            const whatsappUrl = `https://web.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`;
-
-            // فتح التاب للرقم الحالي فقط
-            window.open(whatsappUrl, '_blank');
-
-            document.getElementById('statusBadge').innerText = `📤 جاري معالجة الرقم (${currentIndex + 1} من ${selectedQueue.length}) - اضغط الزر للرقم التالى بعد الإرسال`;
-            
-            // تغيير نص الزر ليكون واضحاً للخطوة القادمة
-            const btn = document.querySelector('.btn');
-            btn.innerText = `➡️ افتح الرقم التالي (${currentIndex + 2}/${selectedQueue.length})`;
-
-            currentIndex++;
-        }
-
-        function resetQueue() {
-            selectedQueue = [];
-            currentIndex = 0;
-            document.getElementById('statusBadge').innerText = "تم إعادة الضبط. اختر الأرقام وابدأ من جديد.";
-            document.querySelector('.btn').innerText = "🚀 إرسال متسلسل (فتح الرقم التالي)";
+            const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
         }
     </script>
 </body>
