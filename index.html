@@ -331,17 +331,8 @@
             <div class="char-count"><span id="charCount">0</span> / 4096 حرف</div>
         </div>
 
-        <div class="section">
-            <label class="section-label">⏱️ تأخير الإرسال (ثانية):</label>
-            <div class="delay-control">
-                <input type="number" id="delayInput" min="1" max="60" value="5" placeholder="عدد الثواني">
-                <span style="color: #cbd5e1;">ثانية بين كل رسالة</span>
-            </div>
-        </div>
-
         <div class="btn-group">
-            <button class="btn" id="startBtn" onclick="startAutoSend()" disabled>🚀 بدء الإرسال التلقائي</button>
-            <button class="btn btn-stop" id="stopBtn" onclick="stopAutoSend()" disabled>⏹️ إيقاف</button>
+            <button class="btn" id="startBtn" onclick="startAutoSend()" disabled>🚀 إرسال لكل الأرقام الآن</button>
             <button class="btn btn-secondary" id="clearBtn" onclick="clearAllData()">🗑️ مسح</button>
         </div>
 
@@ -415,10 +406,8 @@
             const canStart = hasData && hasMessage && hasSelected && !state.isRunning;
 
             document.getElementById('startBtn').disabled = !canStart;
-            document.getElementById('stopBtn').disabled = !state.isRunning;
             document.getElementById('excelFile').disabled = state.isRunning;
             document.getElementById('wamessage').disabled = state.isRunning;
-            document.getElementById('delayInput').disabled = state.isRunning;
         }
 
         function handleExcel(event) {
@@ -512,7 +501,6 @@
 
         function startAutoSend() {
             const message = document.getElementById('wamessage').value;
-            const delay = parseInt(document.getElementById('delayInput').value) * 1000 || CONFIG.DEFAULT_DELAY;
             const checkboxes = Array.from(document.querySelectorAll('.row-checkbox:checked'));
 
             if (checkboxes.length === 0) {
@@ -528,8 +516,6 @@
                 return;
             }
 
-            if (state.timer) clearInterval(state.timer);
-
             state.isRunning = true;
             state.sentCount = 0;
             updateUIState();
@@ -537,31 +523,23 @@
             document.getElementById('progressBar').style.display = 'block';
             document.getElementById('progressFill').style.width = '0%';
 
-            let index = 0;
-            showStatus(`🚀 جاري بدء الإرسال التلقائي لأول رقم...`, 'warning');
+            showStatus(`🚀 جاري فتح جميع الأرقام (${checkboxes.length} محادثة)...`, 'warning');
 
-            // Open first chat immediately
-            sendToChat(checkboxes[index], message);
-            index++;
-
-            // Open remaining chats at intervals
-            state.timer = setInterval(() => {
-                if (index >= checkboxes.length) {
-                    clearInterval(state.timer);
-                    state.timer = null;
-                    state.isRunning = false;
-                    updateUIState();
-                    showStatus(`✅ تم الانتهاء من إرسال ${state.sentCount} رسالة بنجاح!`, 'success');
-                    document.getElementById('progressFill').style.width = '100%';
-                    return;
-                }
-
-                sendToChat(checkboxes[index], message);
-                const progress = ((index) / checkboxes.length) * 100;
-                document.getElementById('progressFill').style.width = progress + '%';
-                showStatus(`⏳ تم فتح الرقم (${index} من ${checkboxes.length}) - التالي بعد ${delay / 1000} ثواني...`, 'warning');
-                index++;
-            }, delay);
+            // Open all chats at once with small staggered delays
+            checkboxes.forEach((checkbox, index) => {
+                setTimeout(() => {
+                    sendToChat(checkbox, message);
+                    const progress = ((index + 1) / checkboxes.length) * 100;
+                    document.getElementById('progressFill').style.width = progress + '%';
+                    
+                    if (index + 1 === checkboxes.length) {
+                        state.isRunning = false;
+                        updateUIState();
+                        showStatus(`✅ تم فتح جميع المحادثات (${state.sentCount} محادثة)!`, 'success');
+                        document.getElementById('progressFill').style.width = '100%';
+                    }
+                }, index * 100); // Small delay of 100ms between each to prevent blocking
+            });
         }
 
         function sendToChat(checkbox, message) {
@@ -605,17 +583,6 @@
             }
             
             return phone;
-        }
-
-        function stopAutoSend() {
-            if (state.timer) {
-                clearInterval(state.timer);
-                state.timer = null;
-            }
-            state.isRunning = false;
-            updateUIState();
-            showStatus(`⏹️ تم إيقاف الإرسال التلقائي (تم إرسال ${state.sentCount} رسالة)`, 'warning');
-            document.getElementById('progressBar').style.display = 'none';
         }
 
         function clearAllData() {
