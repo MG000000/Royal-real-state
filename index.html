@@ -14,62 +14,102 @@
             font-family: 'Cairo', sans-serif;
         }
         body {
-            background-color: #0f172a;
+            background: linear-gradient(135deg, #0f172a 0%, #1a1f35 100%);
             color: #ffffff;
             padding: 20px;
+            min-height: 100vh;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background: #1e293b;
-            padding: 25px;
+            padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
         h2 {
             color: #f59e0b;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             text-align: center;
+            font-size: 1.8rem;
+        }
+        .subtitle {
+            text-align: center;
+            color: #cbd5e1;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section-label {
+            color: #cbd5e1;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
         }
         .upload-box {
             border: 2px dashed #475569;
-            padding: 15px;
+            padding: 20px;
             text-align: center;
             border-radius: 8px;
-            margin-bottom: 15px;
             background: #0f172a;
+            transition: 0.3s;
+        }
+        .upload-box:hover {
+            border-color: #f59e0b;
+            background: #151d2e;
+        }
+        .upload-box.active {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.05);
         }
         input[type="file"] {
             color: #f59e0b;
-            padding: 6px;
+            padding: 8px;
             background: #1e293b;
             border-radius: 6px;
             border: 1px solid #475569;
             cursor: pointer;
             width: 100%;
-            max-width: 350px;
-            margin-top: 8px;
+            margin-top: 10px;
+        }
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
         }
         textarea {
             width: 100%;
-            height: 90px;
-            padding: 10px;
+            height: 100px;
+            padding: 12px;
             border-radius: 8px;
             border: 1px solid #475569;
             background: #0f172a;
             color: #fff;
-            resize: none;
+            resize: vertical;
             font-size: 1rem;
-            margin-bottom: 15px;
+            font-family: 'Cairo', sans-serif;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+        .char-count {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 5px;
         }
         .btn-group {
             display: flex;
-            gap: 10px;
+            gap: 12px;
+            flex-wrap: wrap;
         }
         .btn {
             background-color: #f59e0b;
             color: #0f172a;
-            padding: 12px;
+            padding: 14px 20px;
             font-size: 1rem;
             font-weight: 700;
             border: none;
@@ -77,28 +117,74 @@
             cursor: pointer;
             transition: 0.3s;
             flex: 1;
+            min-width: 150px;
             text-align: center;
             box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
         }
-        .btn:hover {
+        .btn:hover:not(:disabled) {
             background-color: #d97706;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         .btn-stop {
             background-color: #ef4444;
             color: #fff;
         }
-        .btn-stop:hover {
+        .btn-stop:hover:not(:disabled) {
             background-color: #dc2626;
+        }
+        .btn-secondary {
+            background-color: #6366f1;
+            flex: 0 1 auto;
+        }
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #4f46e5;
         }
         .status {
             text-align: center;
             margin: 15px 0;
-            font-size: 1.05rem;
-            color: #38bdf8;
+            padding: 12px;
+            font-size: 1rem;
             font-weight: 600;
+            border-radius: 8px;
+            background: rgba(56, 189, 248, 0.1);
+            border-left: 4px solid #38bdf8;
+        }
+        .status.success {
+            color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+            border-left-color: #22c55e;
+        }
+        .status.error {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            border-left-color: #ef4444;
+        }
+        .status.warning {
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            border-left-color: #f59e0b;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #0f172a;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            width: 0%;
+            transition: width 0.3s ease;
         }
         .table-container {
-            max-height: 250px;
+            max-height: 300px;
             overflow-y: auto;
             margin-top: 15px;
             border-radius: 8px;
@@ -109,7 +195,7 @@
             border-collapse: collapse;
         }
         th, td {
-            padding: 10px 12px;
+            padding: 12px;
             text-align: right;
             border-bottom: 1px solid #334155;
             font-size: 0.95rem;
@@ -119,138 +205,451 @@
             color: #f59e0b;
             position: sticky;
             top: 0;
+            font-weight: 700;
+        }
+        tr:hover {
+            background-color: rgba(245, 158, 11, 0.05);
+        }
+        .row-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .row-status.pending {
+            background: rgba(148, 163, 184, 0.2);
+            color: #cbd5e1;
+        }
+        .row-status.sent {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        .row-status.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f59e0b;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            margin-top: 5px;
+        }
+        .delay-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .delay-control input {
+            width: 80px;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: #fff;
+        }
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #f59e0b;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+            .btn {
+                flex: 1;
+            }
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>Royal Real Estate - الإرسال التلقائي للواتساب</h2>
+        <h2>📱 Royal Real Estate</h2>
+        <p class="subtitle">الإرسال التلقائي للواتساب - WhatsApp Bulk Sender</p>
 
-        <div class="upload-box">
-            <label style="color: #cbd5e1; font-weight: 600;">اختر شيت الأكسيل:</label><br>
-            <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="handleExcel(event)">
+        <div id="stats" class="stats" style="display: none;">
+            <div class="stat-box">
+                <div class="stat-value" id="statTotal">0</div>
+                <div class="stat-label">إجمالي الأرقام</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="statSelected">0</div>
+                <div class="stat-label">المحددة</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="statSent">0</div>
+                <div class="stat-label">المرسلة</div>
+            </div>
         </div>
 
-        <label style="color: #cbd5e1; font-weight: 600;">اكتب رسالة الواتساب:</label>
-        <textarea id="wamessage" placeholder="اكتب النص هنا..."></textarea>
+        <div class="section">
+            <div class="upload-box" id="uploadBox">
+                <label class="section-label">📄 اختر شيت الأكسيل:</label>
+                <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="handleExcel(event)">
+                <div id="uploadStatus" style="margin-top: 8px; font-size: 0.85rem; color: #64748b;"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <label class="section-label">💬 اكتب رسالة الواتساب:</label>
+            <textarea id="wamessage" placeholder="اكتب النص هنا... يمكنك استخدام الكلمات المفتاحية مثل {{name}} في الرسالة"></textarea>
+            <div class="char-count"><span id="charCount">0</span> / 4096 حرف</div>
+        </div>
+
+        <div class="section">
+            <label class="section-label">⏱️ تأخير الإرسال (ثانية):</label>
+            <div class="delay-control">
+                <input type="number" id="delayInput" min="1" max="60" value="5" placeholder="عدد الثواني">
+                <span style="color: #cbd5e1;">ثانية بين كل رسالة</span>
+            </div>
+        </div>
 
         <div class="btn-group">
-            <button class="btn" onclick="startAutoSend()">🚀 بدء الإرسال التلقائي (كل 5 ثواني)</button>
-            <button class="btn btn-stop" onclick="stopAutoSend()">⏹️ إيقاف</button>
+            <button class="btn" id="startBtn" onclick="startAutoSend()" disabled>🚀 بدء الإرسال التلقائي</button>
+            <button class="btn btn-stop" id="stopBtn" onclick="stopAutoSend()" disabled>⏹️ إيقاف</button>
+            <button class="btn btn-secondary" id="clearBtn" onclick="clearAllData()">🗑️ مسح</button>
         </div>
 
-        <div id="statusBadge" class="status-badge status">ارفع الشيت واكتب الرسالة للبدء</div>
+        <div id="progressBar" class="progress-bar" style="display: none;">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
 
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 45px;"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
-                        <th>الأرقام والبيانات المستخرجة</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <tr><td colspan="2" style="text-align: center; color: #64748b;">في انتظار رفع شيت الأكسيل...</td></tr>
-                </tbody>
-            </table>
+        <div id="statusBadge" class="status warning">ارفع الشيت واكتب الرسالة للبدء</div>
+
+        <div class="section">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
+                            <th>الحالة</th>
+                            <th>الأرقام والبيانات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="3" style="text-align: center; color: #64748b;">في انتظار رفع شيت الأكسيل...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
-        let excelData = [];
-        let timer = null;
+        // Constants
+        const CONFIG = {
+            MIN_PHONE_LENGTH: 7,
+            MAX_MESSAGE_LENGTH: 4096,
+            DEFAULT_DELAY: 5000, // milliseconds
+        };
+
+        // State management
+        const state = {
+            excelData: [],
+            timer: null,
+            isRunning: false,
+            rowStatus: {}, // Track status of each row
+            sentCount: 0,
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('wamessage').addEventListener('input', updateCharCount);
+            document.getElementById('selectAll').addEventListener('change', updateStats);
+        });
+
+        function updateCharCount() {
+            const message = document.getElementById('wamessage').value;
+            document.getElementById('charCount').textContent = message.length;
+            updateUIState();
+        }
+
+        function updateStats() {
+            const total = state.excelData.length;
+            const selected = document.querySelectorAll('.row-checkbox:checked').length;
+            const sent = state.sentCount;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statSelected').textContent = selected;
+            document.getElementById('statSent').textContent = sent;
+        }
+
+        function updateUIState() {
+            const hasData = state.excelData.length > 0;
+            const hasMessage = document.getElementById('wamessage').value.trim() !== '';
+            const hasSelected = document.querySelectorAll('.row-checkbox:checked').length > 0;
+            const canStart = hasData && hasMessage && hasSelected && !state.isRunning;
+
+            document.getElementById('startBtn').disabled = !canStart;
+            document.getElementById('stopBtn').disabled = !state.isRunning;
+            document.getElementById('excelFile').disabled = state.isRunning;
+            document.getElementById('wamessage').disabled = state.isRunning;
+            document.getElementById('delayInput').disabled = state.isRunning;
+        }
 
         function handleExcel(event) {
             const file = event.target.files[0];
             if (!file) return;
 
+            const uploadBox = document.getElementById('uploadBox');
+            const uploadStatus = document.getElementById('uploadStatus');
+            
+            if (!file.name.match(/\.(xlsx|xls)$/i)) {
+                showStatus('❌ الصيغة غير صحيحة. استخدم ملفات Excel (.xlsx أو .xls)', 'error');
+                uploadStatus.textContent = '❌ صيغة غير صحيحة';
+                return;
+            }
+
+            uploadStatus.textContent = '⏳ جاري تحميل الملف...';
+
             const reader = new FileReader();
             reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                excelData = XLSX.utils.sheet_to_json(sheet, {header: 1});
-                
-                const tbody = document.getElementById('tableBody');
-                tbody.innerHTML = '';
-
-                excelData.forEach((row) => {
-                    if(row && row.length > 0 && row.some(cell => cell !== undefined && cell !== '')) {
-                        const rowText = row.join(' - ');
-                        const phone = row.find(cell => cell && cell.toString().replace(/\D/g, '').length >= 7) || row[0];
-                        
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td><input type="checkbox" class="row-checkbox" value="${phone}"></td>
-                            <td>${rowText}</td>
-                        `;
-                        tbody.appendChild(tr);
-                    }
-                });
-                document.getElementById('statusBadge').innerText = "تم تحميل الشيت بنجاح. حدد الأرقام وابدأ الإرسال.";
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    state.excelData = XLSX.utils.sheet_to_json(sheet, {header: 1})
+                        .filter(row => row && row.length > 0 && row.some(cell => cell !== undefined && cell !== ''));
+                    
+                    state.sentCount = 0;
+                    state.rowStatus = {};
+                    
+                    renderTable();
+                    
+                    uploadBox.classList.add('active');
+                    uploadStatus.textContent = `✅ تم تحميل ${state.excelData.length} صف بنجاح`;
+                    
+                    document.getElementById('stats').style.display = 'grid';
+                    updateStats();
+                    updateUIState();
+                    showStatus(`✅ تم تحميل ${state.excelData.length} صف من الملف. حدد الأرقام وابدأ الإرسال.`, 'success');
+                } catch (error) {
+                    showStatus('❌ خطأ في قراءة الملف: ' + error.message, 'error');
+                    uploadStatus.textContent = '❌ حدث خطأ في تحميل الملف';
+                    console.error('Excel parsing error:', error);
+                }
+            };
+            reader.onerror = function() {
+                showStatus('❌ خطأ في تحميل الملف', 'error');
+                uploadStatus.textContent = '❌ خطأ في التحميل';
             };
             reader.readAsArrayBuffer(file);
         }
 
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            state.excelData.forEach((row, index) => {
+                const rowText = row.join(' - ');
+                const phone = row.find(cell => cell && cell.toString().replace(/\D/g, '').length >= CONFIG.MIN_PHONE_LENGTH) || row[0];
+                const rowId = 'row-' + index;
+                const status = state.rowStatus[rowId] || 'pending';
+                
+                const tr = document.createElement('tr');
+                tr.id = rowId;
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="row-checkbox" value="${escapeHtml(phone)}" onchange="updateStats()"></td>
+                    <td><span class="row-status ${status}">${getStatusText(status)}</span></td>
+                    <td>${escapeHtml(rowText)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (state.excelData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #64748b;">في انتظار رفع شيت الأكسيل...</td></tr>';
+            }
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                pending: '⏳ قيد الانتظار',
+                sent: '✅ مرسلة',
+                error: '❌ خطأ'
+            };
+            return statusMap[status] || status;
+        }
+
         function toggleSelectAll(source) {
             document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = source.checked);
+            updateStats();
+            updateUIState();
         }
 
         function startAutoSend() {
             const message = document.getElementById('wamessage').value;
+            const delay = parseInt(document.getElementById('delayInput').value) * 1000 || CONFIG.DEFAULT_DELAY;
             const checkboxes = Array.from(document.querySelectorAll('.row-checkbox:checked'));
 
-            if(checkboxes.length === 0) {
-                alert('اختر رقم واحد على الأقل من الجدول!');
+            if (checkboxes.length === 0) {
+                showStatus('❌ اختر رقم واحد على الأقل من الجدول!', 'error');
                 return;
             }
-            if(!message.trim()) {
-                alert('اكتب الرسالة أولاً!');
+            if (!message.trim()) {
+                showStatus('❌ اكتب الرسالة أولاً!', 'error');
+                return;
+            }
+            if (message.length > CONFIG.MAX_MESSAGE_LENGTH) {
+                showStatus(`❌ الرسالة طويلة جداً (الحد الأقصى: ${CONFIG.MAX_MESSAGE_LENGTH} حرف)`, 'error');
                 return;
             }
 
-            // لو فيه مؤتمر شغال قبل كده نوقفه
-            if (timer) clearInterval(timer);
+            if (state.timer) clearInterval(state.timer);
+
+            state.isRunning = true;
+            state.sentCount = 0;
+            updateUIState();
+            
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('progressFill').style.width = '0%';
 
             let index = 0;
-            document.getElementById('statusBadge').innerText = `🚀 جاري بدء الإرسال التلقائي لأول رقم...`;
+            showStatus(`🚀 جاري بدء الإرسال التلقائي لأول رقم...`, 'warning');
 
-            // فتح أول رقم فوراً
-            openChat(checkboxes[index].value, message);
+            // Open first chat immediately
+            sendToChat(checkboxes[index], message);
             index++;
 
-            // فتح باقي الأرقام كل 5 ثواني
-            timer = setInterval(() => {
+            // Open remaining chats at intervals
+            state.timer = setInterval(() => {
                 if (index >= checkboxes.length) {
-                    clearInterval(timer);
-                    document.getElementById('statusBadge').innerText = "✅ تم الانتهاء من إرسال جميع الأرقام المحددة بنجاح!";
-                    alert("تم الانتهاء من جميع الأرقام المحددة!");
+                    clearInterval(state.timer);
+                    state.timer = null;
+                    state.isRunning = false;
+                    updateUIState();
+                    showStatus(`✅ تم الانتهاء من إرسال ${state.sentCount} رسالة بنجاح!`, 'success');
+                    document.getElementById('progressFill').style.width = '100%';
                     return;
                 }
 
-                openChat(checkboxes[index].value, message);
-                document.getElementById('statusBadge').innerText = `⏳ تم فتح الرقم (${index + 1} من ${checkboxes.length}) - التالي بعد 5 ثواني...`;
+                sendToChat(checkboxes[index], message);
+                const progress = ((index) / checkboxes.length) * 100;
+                document.getElementById('progressFill').style.width = progress + '%';
+                showStatus(`⏳ تم فتح الرقم (${index} من ${checkboxes.length}) - التالي بعد ${delay / 1000} ثواني...`, 'warning');
                 index++;
-            }, 5000); // 5000 ميللي ثانية = 5 ثواني
+            }, delay);
         }
 
-        function stopAutoSend() {
-            if (timer) {
-                clearInterval(timer);
-                timer = null;
-                document.getElementById('statusBadge').innerText = "⏹️ تم إيقاف الإرسال التلقائي مؤقتاً.";
+        function sendToChat(checkbox, message) {
+            const phone = validateAndFormatPhone(checkbox.value);
+            
+            if (!phone) {
+                showStatus(`❌ رقم غير صحيح: ${checkbox.value}`, 'error');
+                const rowIndex = Array.from(document.querySelectorAll('.row-checkbox')).indexOf(checkbox);
+                if (rowIndex !== -1) state.rowStatus['row-' + rowIndex] = 'error';
+                return;
+            }
+
+            try {
+                const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
+                window.open(url, '_blank');
+                
+                state.sentCount++;
+                const rowIndex = Array.from(document.querySelectorAll('.row-checkbox')).indexOf(checkbox);
+                if (rowIndex !== -1) state.rowStatus['row-' + rowIndex] = 'sent';
+                renderTable();
+                updateStats();
+            } catch (error) {
+                console.error('Error opening chat:', error);
+                showStatus('❌ خطأ في فتح الواتساب', 'error');
             }
         }
 
-        function openChat(phoneRaw, message) {
+        function validateAndFormatPhone(phoneRaw) {
             let phone = phoneRaw.toString().replace(/\D/g, '');
+            
+            if (phone.length < CONFIG.MIN_PHONE_LENGTH) {
+                return null;
+            }
+            
             if (phone.startsWith('0')) {
                 phone = '20' + phone.substring(1);
             }
-            const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
-            window.open(url, '_blank');
+            
+            if (!phone.startsWith('2')) {
+                phone = '20' + phone;
+            }
+            
+            return phone;
         }
+
+        function stopAutoSend() {
+            if (state.timer) {
+                clearInterval(state.timer);
+                state.timer = null;
+            }
+            state.isRunning = false;
+            updateUIState();
+            showStatus(`⏹️ تم إيقاف الإرسال التلقائي (تم إرسال ${state.sentCount} رسالة)`, 'warning');
+            document.getElementById('progressBar').style.display = 'none';
+        }
+
+        function clearAllData() {
+            if (confirm('هل تريد مسح جميع البيانات؟')) {
+                state.excelData = [];
+                state.rowStatus = {};
+                state.sentCount = 0;
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="3" style="text-align: center; color: #64748b;">في انتظار رفع شيت الأكسيل...</td></tr>';
+                document.getElementById('excelFile').value = '';
+                document.getElementById('wamessage').value = '';
+                document.getElementById('selectAll').checked = false;
+                document.getElementById('stats').style.display = 'none';
+                document.getElementById('uploadBox').classList.remove('active');
+                document.getElementById('uploadStatus').textContent = '';
+                updateCharCount();
+                updateUIState();
+                showStatus('✅ تم مسح جميع البيانات', 'success');
+            }
+        }
+
+        function showStatus(message, type = 'info') {
+            const badge = document.getElementById('statusBadge');
+            badge.textContent = message;
+            badge.className = 'status ' + type;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initial UI state
+        updateUIState();
     </script>
 </body>
 </html>
