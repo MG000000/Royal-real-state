@@ -334,6 +334,7 @@
         <div class="btn-group">
             <button class="btn" id="startBtn" onclick="startAutoSend()" disabled>🚀 إرسال عبر الويب</button>
             <button class="btn btn-secondary" id="forwardBtn" onclick="startForward()" disabled>📱 Forward (تطبيق)</button>
+            <button class="btn btn-secondary" id="directBtn" onclick="sendDirect()" disabled>🔗 رابط مباشر</button>
             <button class="btn btn-secondary" id="clearBtn" onclick="clearAllData()">🗑️ مسح</button>
         </div>
 
@@ -408,6 +409,7 @@
 
             document.getElementById('startBtn').disabled = !canStart;
             document.getElementById('forwardBtn').disabled = !canStart;
+            document.getElementById('directBtn').disabled = !canStart;
             document.getElementById('excelFile').disabled = state.isRunning;
             document.getElementById('wamessage').disabled = state.isRunning;
         }
@@ -548,6 +550,9 @@
             const message = document.getElementById('wamessage').value;
             const checkboxes = Array.from(document.querySelectorAll('.row-checkbox:checked'));
 
+            console.log('Forward button clicked. Checkboxes:', checkboxes.length);
+            console.log('Message:', message);
+
             if (checkboxes.length === 0) {
                 showStatus('❌ اختر رقم واحد على الأقل من الجدول!', 'error');
                 return;
@@ -573,6 +578,7 @@
             // Send via WhatsApp app with staggered delays
             checkboxes.forEach((checkbox, index) => {
                 setTimeout(() => {
+                    console.log('Sending via app to:', checkbox.value);
                     sendViaApp(checkbox, message);
                     const progress = ((index + 1) / checkboxes.length) * 100;
                     document.getElementById('progressFill').style.width = progress + '%';
@@ -591,7 +597,10 @@
         function sendToChat(checkbox, message) {
             const phone = validateAndFormatPhone(checkbox.value);
             
+            console.log('sendToChat called with phone:', checkbox.value, 'formatted:', phone);
+            
             if (!phone) {
+                console.error('Invalid phone number:', checkbox.value);
                 showStatus(`❌ رقم غير صحيح: ${checkbox.value}`, 'error');
                 const rowIndex = Array.from(document.querySelectorAll('.row-checkbox')).indexOf(checkbox);
                 if (rowIndex !== -1) state.rowStatus['row-' + rowIndex] = 'error';
@@ -599,7 +608,9 @@
             }
 
             try {
+                // For web version - forces web.whatsapp.com
                 const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
+                console.log('Opening URL:', url);
                 window.open(url, '_blank');
                 
                 state.sentCount++;
@@ -609,7 +620,7 @@
                 updateStats();
             } catch (error) {
                 console.error('Error opening chat:', error);
-                showStatus('❌ خطأ في فتح الواتساب', 'error');
+                showStatus('❌ خطأ في فتح WhatsApp', 'error');
             }
         }
 
@@ -624,9 +635,9 @@
             }
 
             try {
-                // Use WhatsApp app protocol (whatsapp://)
-                const url = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(message)}`;
-                window.location.href = url;
+                // Use wa.me/ method - works on app and web
+                const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+                window.open(url, '_blank');
                 
                 state.sentCount++;
                 const rowIndex = Array.from(document.querySelectorAll('.row-checkbox')).indexOf(checkbox);
@@ -634,8 +645,8 @@
                 renderTable();
                 updateStats();
             } catch (error) {
-                console.error('Error opening WhatsApp app:', error);
-                showStatus('❌ تأكد من تثبيت تطبيق WhatsApp', 'error');
+                console.error('Error opening WhatsApp:', error);
+                showStatus('❌ خطأ في فتح WhatsApp', 'error');
             }
         }
 
@@ -655,6 +666,61 @@
             }
             
             return phone;
+        }
+
+        function sendDirect() {
+            const message = document.getElementById('wamessage').value;
+            const checkboxes = Array.from(document.querySelectorAll('.row-checkbox:checked'));
+
+            console.log('Direct link button clicked. Checkboxes:', checkboxes.length);
+
+            if (checkboxes.length === 0) {
+                showStatus('❌ اختر رقم واحد على الأقل من الجدول!', 'error');
+                return;
+            }
+            if (!message.trim()) {
+                showStatus('❌ اكتب الرسالة أولاً!', 'error');
+                return;
+            }
+
+            state.isRunning = true;
+            state.sentCount = 0;
+            updateUIState();
+            
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('progressFill').style.width = '0%';
+
+            showStatus(`🔗 جاري فتح الروابط المباشرة (${checkboxes.length} رابط)...`, 'warning');
+
+            // Generate and download links or show them
+            let linksText = 'روابط الرسائل:\n\n';
+            checkboxes.forEach((checkbox, index) => {
+                setTimeout(() => {
+                    const phone = validateAndFormatPhone(checkbox.value);
+                    if (phone) {
+                        const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+                        console.log('Opening direct link:', url);
+                        window.open(url, '_blank');
+                        linksText += `${index + 1}. ${url}\n`;
+                        
+                        state.sentCount++;
+                        const rowIndex = Array.from(document.querySelectorAll('.row-checkbox')).indexOf(checkbox);
+                        if (rowIndex !== -1) state.rowStatus['row-' + rowIndex] = 'sent';
+                        renderTable();
+                        updateStats();
+                    }
+                    
+                    const progress = ((index + 1) / checkboxes.length) * 100;
+                    document.getElementById('progressFill').style.width = progress + '%';
+                    
+                    if (index + 1 === checkboxes.length) {
+                        state.isRunning = false;
+                        updateUIState();
+                        showStatus(`✅ تم فتح جميع الروابط (${state.sentCount} رابط)!`, 'success');
+                        document.getElementById('progressFill').style.width = '100%';
+                    }
+                }, index * 200);
+            });
         }
 
         function clearAllData() {
