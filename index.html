@@ -590,31 +590,203 @@
                 return;
             }
 
-            state.isRunning = true;
-            state.sentCount = 0;
-            updateUIState();
-            
-            document.getElementById('progressBar').style.display = 'block';
-            document.getElementById('progressFill').style.width = '0%';
+            // Create a data structure for the forward list
+            const forwardData = {
+                message: message,
+                phones: checkboxes.map(cb => validateAndFormatPhone(cb.value)).filter(p => p !== null),
+                rawNumbers: checkboxes.map(cb => cb.value)
+            };
 
-            showStatus(`📱 جاري فتح التطبيق للأرقام (${checkboxes.length} محادثة)...`, 'warning');
-
-            // Send via WhatsApp app with staggered delays
-            checkboxes.forEach((checkbox, index) => {
-                setTimeout(() => {
-                    console.log('Sending via app to:', checkbox.value);
-                    sendViaApp(checkbox, message);
-                    const progress = ((index + 1) / checkboxes.length) * 100;
-                    document.getElementById('progressFill').style.width = progress + '%';
-                    
-                    if (index + 1 === checkboxes.length) {
-                        state.isRunning = false;
-                        updateUIState();
-                        showStatus(`✅ تم فتح جميع المحادثات في التطبيق (${state.sentCount} محادثة)!`, 'success');
-                        document.getElementById('progressFill').style.width = '100%';
-                    }
-                }, index * 150); // 150ms delay between each to give app time to respond
+            // Copy message to clipboard
+            navigator.clipboard.writeText(message).then(() => {
+                showStatus(`✅ تم نسخ الرسالة! (${forwardData.phones.length} متلقي)`, 'success');
+                
+                // Open WhatsApp with the first number
+                if (forwardData.phones.length > 0) {
+                    setTimeout(() => {
+                        const firstPhone = forwardData.phones[0];
+                        const url = `https://wa.me/${firstPhone}`;
+                        
+                        // Create a modal to show instructions
+                        showForwardList(forwardData);
+                    }, 500);
+                }
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                showStatus('❌ فشل نسخ الرسالة، حاول يدويًا', 'error');
+                showForwardList(forwardData);
             });
+        }
+
+        function showForwardList(forwardData) {
+            // Create modal overlay
+            const modal = document.createElement('div');
+            modal.id = 'forwardModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                direction: rtl;
+            `;
+
+            const content = document.createElement('div');
+            content.style.cssText = `
+                background: #1e293b;
+                border: 2px solid #f59e0b;
+                border-radius: 12px;
+                padding: 30px;
+                max-width: 500px;
+                max-height: 80vh;
+                overflow-y: auto;
+                color: #fff;
+                text-align: right;
+            `;
+
+            const title = document.createElement('h2');
+            title.textContent = '📱 قائمة Forward';
+            title.style.color = '#f59e0b';
+            title.style.marginBottom = '20px';
+            title.style.textAlign = 'center';
+
+            const messageBox = document.createElement('div');
+            messageBox.style.cssText = `
+                background: #0f172a;
+                border: 1px solid #475569;
+                padding: 15px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                font-size: 0.9rem;
+            `;
+            messageBox.innerHTML = `
+                <strong style="color: #f59e0b;">الرسالة (تم نسخها):</strong><br>
+                <p style="margin-top: 10px; color: #cbd5e1;">${escapeHtml(forwardData.message)}</p>
+            `;
+
+            const numbersBox = document.createElement('div');
+            numbersBox.style.cssText = `
+                background: #0f172a;
+                border: 1px solid #475569;
+                padding: 15px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+            `;
+            numbersBox.innerHTML = `
+                <strong style="color: #22c55e;">الأرقام (${forwardData.phones.length}):</strong><br>
+                ${forwardData.rawNumbers.map((num, i) => `
+                    <div style="margin-top: 8px; padding: 8px; background: #1a1f35; border-radius: 4px; color: #cbd5e1;">
+                        ${i + 1}. ${escapeHtml(num)}
+                    </div>
+                `).join('')}
+            `;
+
+            const instructions = document.createElement('div');
+            instructions.style.cssText = `
+                background: rgba(34, 197, 94, 0.1);
+                border-left: 4px solid #22c55e;
+                padding: 15px;
+                border-radius: 6px;
+                margin-bottom: 20px;
+                font-size: 0.9rem;
+                color: #cbd5e1;
+            `;
+            instructions.innerHTML = `
+                <strong style="color: #22c55e;">✅ طريقة الاستخدام:</strong><br>
+                1️⃣ الرسالة موجودة في Clipboard (جاهزة للنسخ)<br>
+                2️⃣ افتح WhatsApp<br>
+                3️⃣ اضغط Forward أو رسالة جديدة<br>
+                4️⃣ اختر الأرقام من القائمة أعلاه<br>
+                5️⃣ الصق الرسالة (Ctrl+V أو Cmd+V)<br>
+                6️⃣ اضغط إرسال ✉️<br>
+            `;
+
+            const buttons = document.createElement('div');
+            buttons.style.cssText = `
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+                flex-wrap: wrap;
+            `;
+
+            const whatsappBtn = document.createElement('button');
+            whatsappBtn.textContent = '📱 فتح WhatsApp الآن';
+            whatsappBtn.style.cssText = `
+                background: #25d366;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+                font-size: 1rem;
+                flex: 1;
+                min-width: 150px;
+            `;
+            whatsappBtn.onclick = () => {
+                window.open('https://web.whatsapp.com/', '_blank');
+            };
+
+            const copyBtn = document.createElement('button');
+            copyBtn.textContent = '📋 نسخ الرسالة';
+            copyBtn.style.cssText = `
+                background: #f59e0b;
+                color: #0f172a;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+                font-size: 1rem;
+                flex: 1;
+                min-width: 150px;
+            `;
+            copyBtn.onclick = () => {
+                navigator.clipboard.writeText(forwardData.message);
+                copyBtn.textContent = '✅ تم النسخ!';
+                setTimeout(() => {
+                    copyBtn.textContent = '📋 نسخ الرسالة';
+                }, 2000);
+            };
+
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '❌ إغلاق';
+            closeBtn.style.cssText = `
+                background: #6b7280;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+                font-size: 1rem;
+                flex: 1;
+                min-width: 150px;
+            `;
+            closeBtn.onclick = () => {
+                document.body.removeChild(modal);
+            };
+
+            buttons.appendChild(whatsappBtn);
+            buttons.appendChild(copyBtn);
+            buttons.appendChild(closeBtn);
+
+            content.appendChild(title);
+            content.appendChild(messageBox);
+            content.appendChild(numbersBox);
+            content.appendChild(instructions);
+            content.appendChild(buttons);
+
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+
+            state.isRunning = false;
+            updateUIState();
         }
             const phone = validateAndFormatPhone(checkbox.value);
         
