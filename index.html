@@ -144,6 +144,18 @@
         .btn-secondary:hover:not(:disabled) {
             background-color: #4f46e5;
         }
+        #forwardBtn {
+            flex: 1 1 auto;
+            min-width: 250px;
+            padding: 18px 30px;
+            font-size: 1.1rem;
+            background-color: #f59e0b;
+            color: #0f172a;
+        }
+        #forwardBtn:hover:not(:disabled) {
+            background-color: #d97706;
+            transform: scale(1.02);
+        }
         .status {
             text-align: center;
             margin: 15px 0;
@@ -317,6 +329,15 @@
             </div>
         </div>
 
+        <div id="welcomeBox" class="status success" style="margin-bottom: 20px; text-align: left;">
+            <strong>🚀 مرحباً! الخطوات:</strong><br>
+            ✅ 1. ارفع ملف Excel بالأرقام<br>
+            ✅ 2. اختر الأرقام المطلوبة من الجدول<br>
+            ✅ 3. اكتب الرسالة<br>
+            ✅ 4. اضغط "Forward - إرسال الآن"<br>
+            💡 <small>يمكنك استخدام خيارات الويب والروابط المباشرة من الأزرار الأخرى</small>
+        </div>
+
         <div class="section">
             <div class="upload-box" id="uploadBox">
                 <label class="section-label">📄 اختر شيت الأكسيل:</label>
@@ -332,9 +353,10 @@
         </div>
 
         <div class="btn-group">
-            <button class="btn" id="startBtn" onclick="startAutoSend()" disabled>🚀 إرسال عبر الويب</button>
-            <button class="btn btn-secondary" id="forwardBtn" onclick="startForward()" disabled>📱 Forward (تطبيق)</button>
+            <button class="btn" id="startBtn" onclick="startAutoSend()" disabled style="display: none;">🚀 إرسال عبر الويب</button>
+            <button class="btn" id="forwardBtn" onclick="startForward()" disabled>📱 Forward - إرسال الآن</button>
             <button class="btn btn-secondary" id="directBtn" onclick="sendDirect()" disabled>🔗 رابط مباشر</button>
+            <button class="btn btn-secondary" id="webBtn" onclick="startAutoSend()" disabled>🌐 الويب</button>
             <button class="btn btn-secondary" id="clearBtn" onclick="clearAllData()">🗑️ مسح</button>
         </div>
 
@@ -410,6 +432,7 @@
             document.getElementById('startBtn').disabled = !canStart;
             document.getElementById('forwardBtn').disabled = !canStart;
             document.getElementById('directBtn').disabled = !canStart;
+            document.getElementById('webBtn').disabled = !canStart;
             document.getElementById('excelFile').disabled = state.isRunning;
             document.getElementById('wamessage').disabled = state.isRunning;
         }
@@ -447,6 +470,7 @@
                     uploadStatus.textContent = `✅ تم تحميل ${state.excelData.length} صف بنجاح`;
                     
                     document.getElementById('stats').style.display = 'grid';
+                    document.getElementById('welcomeBox').style.display = 'none';
                     updateStats();
                     updateUIState();
                     showStatus(`✅ تم تحميل ${state.excelData.length} صف من الملف. حدد الأرقام وابدأ الإرسال.`, 'success');
@@ -733,6 +757,7 @@
                 document.getElementById('wamessage').value = '';
                 document.getElementById('selectAll').checked = false;
                 document.getElementById('stats').style.display = 'none';
+                document.getElementById('welcomeBox').style.display = 'block';
                 document.getElementById('uploadBox').classList.remove('active');
                 document.getElementById('uploadStatus').textContent = '';
                 updateCharCount();
