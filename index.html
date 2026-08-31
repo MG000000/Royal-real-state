@@ -590,121 +590,28 @@
             state.isRunning = true;
             state.sentCount = 0;
             updateUIState();
-            
+
             document.getElementById('progressBar').style.display = 'block';
             document.getElementById('progressFill').style.width = '0%';
 
-            showStatus(`📱 جاري فتح المحادثات على WhatsApp Web...`, 'warning');
+            showStatus(`🚀 جاري فتح جميع الشاتات (${checkboxes.length} محادثة) والرسالة جاهزة، دوس Enter لكل واحدة...`, 'warning');
 
-            // Get phones
-            const phones = checkboxes.map(cb => validateAndFormatPhone(cb.value)).filter(p => p !== null);
-            
-            // Open each chat with delay
-            phones.forEach((phone, index) => {
+            checkboxes.forEach((checkbox, index) => {
                 setTimeout(() => {
-                    sendViaWebAuto(phone, message, index, checkboxes[index]);
-                }, index * 3000); // 3 seconds between each
+                    sendToChat(checkbox, message);
+                    const progress = ((index + 1) / checkboxes.length) * 100;
+                    document.getElementById('progressFill').style.width = progress + '%';
+
+                    if (index + 1 === checkboxes.length) {
+                        state.isRunning = false;
+                        updateUIState();
+                        showStatus(`✅ تم فتح جميع المحادثات (${state.sentCount})! الرسالة جاهزة، دوس Enter لكل شات.`, 'success');
+                        document.getElementById('progressFill').style.width = '100%';
+                    }
+                }, index * 300);
             });
         }
 
-        function sendViaWebAuto(phone, message, index, checkbox) {
-            // Open WhatsApp Web chat with pre-filled message
-            const encodedMessage = encodeURIComponent(message);
-            const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`;
-            
-            console.log(`Opening chat ${index + 1}: ${url}`);
-            
-            const chatWindow = window.open(url, `whatsapp_${phone}`);
-            
-            if (!chatWindow) {
-                showStatus('❌ فشل فتح WhatsApp - تأكد من تفعيل النوافذ المنفثقة', 'error');
-                return;
-            }
-
-            // Try to send message after it loads
-            setTimeout(() => {
-                try {
-                    chatWindow.focus();
-                    
-                    // Try multiple methods to send
-                    const sendMessage = `
-                        (function() {
-                            try {
-                                // Method 1: Find send button and click it
-                                const buttons = document.querySelectorAll('[data-testid="send"]');
-                                if (buttons.length > 0) {
-                                    buttons[buttons.length - 1].click();
-                                    return 'sent_via_button';
-                                }
-                                
-                                // Method 2: Try keyboard shortcut (Ctrl+Enter)
-                                const messageBox = document.querySelector('[contenteditable="true"]');
-                                if (messageBox) {
-                                    messageBox.focus();
-                                    const event = new KeyboardEvent('keydown', {
-                                        key: 'Enter',
-                                        code: 'Enter',
-                                        keyCode: 13,
-                                        which: 13,
-                                        ctrlKey: true,
-                                        shiftKey: false,
-                                        altKey: false,
-                                        metaKey: false,
-                                        bubbles: true,
-                                        cancelable: true
-                                    });
-                                    messageBox.dispatchEvent(event);
-                                    return 'sent_via_keyboard';
-                                }
-                                
-                                return 'message_box_not_found';
-                            } catch(e) {
-                                return 'error: ' + e.message;
-                            }
-                        })()
-                    `;
-                    
-                    // Can't execute in other window due to security, so just leave it open
-                    showStatus(`✅ فتحت المحادثة #${index + 1} - اضغط إرسال يدويًا أو استخدم Ctrl+Enter`, 'warning');
-                    
-                    // Mark as sent anyway (user will send manually)
-                    state.sentCount++;
-                    if (checkbox) {
-                        const rowIndex = Array.from(document.querySelectorAll('.row-checkbox')).indexOf(checkbox);
-                        if (rowIndex !== -1) state.rowStatus['row-' + rowIndex] = 'sent';
-                        renderTable();
-                    }
-                    updateStats();
-                    
-                    // Update progress
-                    const totalPhones = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(
-                        cb => validateAndFormatPhone(cb.value)
-                    ).filter(p => p !== null).length;
-                    
-                    const progress = ((index + 1) / totalPhones) * 100;
-                    document.getElementById('progressFill').style.width = progress + '%';
-                    
-                } catch (e) {
-                    console.error('Error:', e);
-                }
-            }, 2500); // Give time for page to load
-            
-            // After all done
-            setTimeout(() => {
-                const totalPhones = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(
-                    cb => validateAndFormatPhone(cb.value)
-                ).filter(p => p !== null).length;
-                
-                if (state.sentCount === totalPhones) {
-                    state.isRunning = false;
-                    updateUIState();
-                    showStatus(`✅ تم فتح ${state.sentCount} محادثة! اضغط إرسال في كل نافذة أو استخدم Ctrl+Enter`, 'success');
-                    document.getElementById('progressFill').style.width = '100%';
-                }
-            }, 3500 * Math.max(3, Array.from(document.querySelectorAll('.row-checkbox:checked')).length));
-        }
-            const phone = validateAndFormatPhone(checkbox.value);
-        
         function sendToChat(checkbox, message) {
             const phone = validateAndFormatPhone(checkbox.value);
             
